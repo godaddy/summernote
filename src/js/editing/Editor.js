@@ -45,7 +45,7 @@ define([
      */
     this.currentStyle = function (elTarget) {
       var rng = range.create();
-      return rng && rng.isOnEditable() && style.current(rng, elTarget);
+      return rng ? rng.isOnEditable() && style.current(rng, elTarget) : false;
     };
 
     /**
@@ -91,7 +91,7 @@ define([
     /* jshint ignore:end */
 
     /**
-     * @param {jQuery} $editable
+     * @param {jQuery} $editable 
      * @param {WrappedRange} rng
      * @param {Number} nTabsize
      */
@@ -107,7 +107,7 @@ define([
 
     /**
      * handle tab key
-     * @param {jQuery} $editable
+     * @param {jQuery} $editable 
      * @param {Object} options
      */
     this.tab = function ($editable, options) {
@@ -136,7 +136,6 @@ define([
      * @param {String} sUrl
      */
     this.insertImage = function ($editable, sUrl) {
-      $editable.closest('.note-editor').data('holderNode').trigger('summernote:event', ['insertImage', sUrl]);
       async.createImage(sUrl).then(function ($image) {
         recordUndo($editable);
         $image.css({
@@ -145,7 +144,6 @@ define([
         });
         range.create().insertNode($image[0]);
       }).fail(function () {
-        $editable.closest('.note-editor').data('holderNode').trigger('summernote:event', ['insertImageFail', sUrl]);
         var callbacks = $editable.data('callbacks');
         if (callbacks.onImageUploadError) {
           callbacks.onImageUploadError();
@@ -159,49 +157,42 @@ define([
      * @param {String} sUrl
      */
     this.insertVideo = function ($editable, sUrl) {
-      $editable.closest('.note-editor').data('holderNode').trigger('summernote:event', ['insertVideo', sUrl]);
       recordUndo($editable);
 
       // video url patterns(youtube, instagram, vimeo, dailymotion, youku)
-      // tester with specs: https://regex101.com/r/eW6sO1/2
-      var ytRegExp = /(?:(?:youtu\.?be)(?:\.com)?\/(?:.*[=\/])*)([^= &?\/]{8,11})/;
+      var ytRegExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
       var ytMatch = sUrl.match(ytRegExp);
 
-      // tester with specs: https://regex101.com/r/xN5wR8/8
-      var igRegExp = /(?:instagram\.com|instagr\.am)\/p\/(.[a-zA-Z0-9]*)/;
+      var igRegExp = /\/\/instagram.com\/p\/(.[a-zA-Z0-9]*)/;
       var igMatch = sUrl.match(igRegExp);
 
-      // tester with specs: https://regex101.com/r/bV0uO0/3
-      var vRegExp = /vine\.co\/v\/(.[a-zA-Z0-9]*)/;
+      var vRegExp = /\/\/vine.co\/v\/(.[a-zA-Z0-9]*)/;
       var vMatch = sUrl.match(vRegExp);
 
-      // tester with specs: https://regex101.com/r/tS9fP1/3
-      var vimRegExp = /(player|www)?\.?vimeo\.com\/([a-z]*\/)*([0-9]{6,11})[?]?.*/;
+      var vimRegExp = /\/\/(player.)?vimeo.com\/([a-z]*\/)*([0-9]{6,11})[?]?.*/;
       var vimMatch = sUrl.match(vimRegExp);
 
-      // tester with specs: https://regex101.com/r/rJ2yU4/3
-      var dmRegExp = /dailymotion.com\/(video|hub)\/([^_]+)[^#]*(#video=([^_&]+))?/;
+      var dmRegExp = /.+dailymotion.com\/(video|hub)\/([^_]+)[^#]*(#video=([^_&]+))?/;
       var dmMatch = sUrl.match(dmRegExp);
 
-      // tester with specs: https://regex101.com/r/cY8pT6/2
-      var youkuRegExp = /v\.youku\.com\/v_show\/id_(\w+)=*?\.html/;
+      var youkuRegExp = /\/\/v\.youku\.com\/v_show\/id_(\w+)\.html/;
       var youkuMatch = sUrl.match(youkuRegExp);
 
       var $video;
-      if (ytMatch && ytMatch[1].length === 11) {
-        var youtubeId = ytMatch[1];
+      if (ytMatch && ytMatch[2].length === 11) {
+        var youtubeId = ytMatch[2];
         $video = $('<iframe>')
           .attr('src', '//www.youtube.com/embed/' + youtubeId)
           .attr('width', '640').attr('height', '360');
-      } else if (igMatch && igMatch[1].length) {
+      } else if (igMatch && igMatch[0].length) {
         $video = $('<iframe>')
-          .attr('src', '//instagram.com/p/' + igMatch[1] + '/embed/')
+          .attr('src', igMatch[0] + '/embed/')
           .attr('width', '612').attr('height', '710')
           .attr('scrolling', 'no')
           .attr('allowtransparency', 'true');
-      } else if (vMatch && vMatch[1].length) {
+      } else if (vMatch && vMatch[0].length) {
         $video = $('<iframe>')
-          .attr('src', '//vine.co/v/' + vMatch[1] + '/embed/simple')
+          .attr('src', vMatch[0] + '/embed/simple')
           .attr('width', '600').attr('height', '600')
           .attr('class', 'vine-embed');
       } else if (vimMatch && vimMatch[3].length) {
@@ -219,7 +210,6 @@ define([
           .attr('src', '//player.youku.com/embed/' + youkuMatch[1]);
       } else {
         // this is not a known video link. Now what, Cat? Now what?
-        $editable.closest('.note-editor').data('holderNode').trigger('summernote:event', ['insertVideoFail', sUrl]);
       }
 
       if ($video) {
@@ -309,7 +299,6 @@ define([
      */
     this.createLink = function ($editable, linkInfo, options) {
       var sLinkUrl = linkInfo.url;
-      $editable.closest('.note-editor').data('holderNode').trigger('summernote:event', ['insertLink', sLinkUrl]);
       var sLinkText = linkInfo.text;
       var isNewWindow = linkInfo.newWindow;
       var rng = linkInfo.range;
