@@ -91,7 +91,7 @@ define([
     /* jshint ignore:end */
 
     /**
-     * @param {jQuery} $editable 
+     * @param {jQuery} $editable
      * @param {WrappedRange} rng
      * @param {Number} nTabsize
      */
@@ -107,7 +107,7 @@ define([
 
     /**
      * handle tab key
-     * @param {jQuery} $editable 
+     * @param {jQuery} $editable
      * @param {Object} options
      */
     this.tab = function ($editable, options) {
@@ -160,39 +160,45 @@ define([
       recordUndo($editable);
 
       // video url patterns(youtube, instagram, vimeo, dailymotion, youku)
-      var ytRegExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+      // tester with specs: https://regex101.com/r/eW6sO1/2
+      var ytRegExp = /(?:(?:youtu\.?be)(?:\.com)?\/(?:.*[=\/])*)([^= &?\/]{8,11})/;
       var ytMatch = sUrl.match(ytRegExp);
 
-      var igRegExp = /\/\/instagram.com\/p\/(.[a-zA-Z0-9]*)/;
+      // tester with specs: https://regex101.com/r/xN5wR8/8
+      var igRegExp = /(?:instagram\.com|instagr\.am)\/p\/(.[a-zA-Z0-9]*)/;
       var igMatch = sUrl.match(igRegExp);
 
-      var vRegExp = /\/\/vine.co\/v\/(.[a-zA-Z0-9]*)/;
+      // tester with specs: https://regex101.com/r/bV0uO0/3
+      var vRegExp = /vine\.co\/v\/(.[a-zA-Z0-9]*)/;
       var vMatch = sUrl.match(vRegExp);
 
-      var vimRegExp = /\/\/(player.)?vimeo.com\/([a-z]*\/)*([0-9]{6,11})[?]?.*/;
+      // tester with specs: https://regex101.com/r/tS9fP1/3
+      var vimRegExp = /(player|www)?\.?vimeo\.com\/([a-z]*\/)*([0-9]{6,11})[?]?.*/;
       var vimMatch = sUrl.match(vimRegExp);
 
-      var dmRegExp = /.+dailymotion.com\/(video|hub)\/([^_]+)[^#]*(#video=([^_&]+))?/;
+      // tester with specs: https://regex101.com/r/rJ2yU4/3
+      var dmRegExp = /dailymotion.com\/(video|hub)\/([^_]+)[^#]*(#video=([^_&]+))?/;
       var dmMatch = sUrl.match(dmRegExp);
 
-      var youkuRegExp = /\/\/v\.youku\.com\/v_show\/id_(\w+)\.html/;
+      // tester with specs: https://regex101.com/r/cY8pT6/2
+      var youkuRegExp = /v\.youku\.com\/v_show\/id_(\w+)=*?\.html/;
       var youkuMatch = sUrl.match(youkuRegExp);
 
       var $video;
-      if (ytMatch && ytMatch[2].length === 11) {
-        var youtubeId = ytMatch[2];
+      if (ytMatch && ytMatch[1].length === 11) {
+        var youtubeId = ytMatch[1];
         $video = $('<iframe>')
           .attr('src', '//www.youtube.com/embed/' + youtubeId)
           .attr('width', '640').attr('height', '360');
-      } else if (igMatch && igMatch[0].length) {
+      } else if (igMatch && igMatch[1].length) {
         $video = $('<iframe>')
-          .attr('src', igMatch[0] + '/embed/')
+          .attr('src', '//instagram.com/p/' + igMatch[1] + '/embed/')
           .attr('width', '612').attr('height', '710')
           .attr('scrolling', 'no')
           .attr('allowtransparency', 'true');
-      } else if (vMatch && vMatch[0].length) {
+      } else if (vMatch && vMatch[1].length) {
         $video = $('<iframe>')
-          .attr('src', vMatch[0] + '/embed/simple')
+          .attr('src', '//vine.co/v/' + vMatch[1] + '/embed/simple')
           .attr('width', '600').attr('height', '600')
           .attr('class', 'vine-embed');
       } else if (vimMatch && vimMatch[3].length) {
