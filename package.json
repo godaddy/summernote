@@ -23,6 +23,6 @@
     "connect-livereload": "*"
   },
   "dependencies": {
-    "open": "0.0.4"
+    "open": "0.0.5"
   }
 }
